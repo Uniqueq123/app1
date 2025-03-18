@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safety Monitor Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .dashboard {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .notification-card {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .notification-time {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .app-name {
+            font-weight: bold;
+            color: #007bff;
+        }
+        .refresh-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .refresh-button:hover {
+            background: #0056b3;
+        }
+        #apiKeyInput {
+            padding: 8px;
+            margin-right: 10px;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Safety Monitor Dashboard</h1>
+    
+    <div class="dashboard">
+        <div style="margin-bottom: 20px;">
+            <input type="password" id="apiKeyInput" placeholder="Enter API Key">
+            <button class="refresh-button" onclick="loadNotifications()">Refresh Notifications</button>
+        </div>
+        
+        <div id="notifications">
+            <!-- Notifications will be displayed here -->
+        </div>
+    </div>
+
+    <script>
+        function formatDate(timestamp) {
+            return new Date(timestamp).toLocaleString();
+        }
+
+        function loadNotifications() {
+            const apiKey = document.getElementById('apiKeyInput').value;
+            if (!apiKey) {
+                alert('Please enter API key');
+                return;
+            }
+
+            fetch('/api/notifications', {
+                headers: {
+                    'X-API-Key': apiKey
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('API Key invalid or server error');
+                }
+                return response.json();
+            })
+            .then(notifications => {
+                const container = document.getElementById('notifications');
+                container.innerHTML = ''; // Clear existing notifications
+                
+                if (notifications.length === 0) {
+                    container.innerHTML = '<p>No notifications received yet.</p>';
+                    return;
+                }
+
+                // Sort notifications by timestamp, newest first
+                notifications.sort((a, b) => b.timestamp - a.timestamp);
+
+                notifications.forEach(notification => {
+                    const card = document.createElement('div');
+                    card.className = 'notification-card';
+                    card.innerHTML = `
+                        <div class="app-name">${notification.appName}</div>
+                        <strong>${notification.title}</strong>
+                        <p>${notification.text}</p>
+                        <div class="notification-time">
+                            ${formatDate(notification.timestamp)}
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            })
+            .catch(error => {
+                alert('Error: ' + error.message);
+            });
+        }
+
+        // Load notifications automatically when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check for API key in localStorage
+            const savedApiKey = localStorage.getItem('apiKey');
+            if (savedApiKey) {
+                document.getElementById('apiKeyInput').value = savedApiKey;
+                loadNotifications();
+            }
+        });
+
+        // Auto-refresh every 30 seconds
+        setInterval(loadNotifications, 30000);
+    </script>
+</body>
+</html> 
