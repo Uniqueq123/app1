@@ -7,12 +7,14 @@ const host = '0.0.0.0';
 // Enable CORS for your Netlify frontend
 app.use(cors({
     origin: [
-        'https://your-netlify-app.netlify.app', // Replace with your Netlify domain
-        'http://localhost:3000',
-        'http://192.168.8.132:3000'
+        'https://app1-41i1.onrender.com',    // Your Render URL
+        'http://192.168.8.132:3000',         // Your local network testing
+        'http://localhost:3000',             // Local development
+        '*'                                  // Allow all origins temporarily for testing
     ],
     methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'X-API-Key']
+    allowedHeaders: ['Content-Type', 'X-API-Key'],
+    credentials: true
 }));
 
 app.use(express.json());
