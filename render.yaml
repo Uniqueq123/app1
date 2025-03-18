@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: safety-monitor-server
+    env: node
+    buildCommand: cd src && npm install
+    startCommand: cd src && node server.js
+    envVars:
+      - key: PORT
+        value: 3000 
