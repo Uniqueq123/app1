@@ -6,7 +6,11 @@ const host = '0.0.0.0';
 
 // Enable CORS for your Netlify frontend
 app.use(cors({
-    origin: ['https://your-site.netlify.app', 'http://localhost:3000', 'http://192.168.8.132:3000'],
+    origin: [
+        'https://your-netlify-app.netlify.app', // Replace with your Netlify domain
+        'http://localhost:3000',
+        'http://192.168.8.132:3000'
+    ],
     methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'X-API-Key']
 }));
