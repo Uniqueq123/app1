@@ -44,19 +44,25 @@
         .refresh-button:hover {
             background: #0056b3;
         }
-        #apiKeyInput {
-            padding: 8px;
-            margin-right: 10px;
-            width: 200px;
+        .logout-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
+    <button class="logout-button" onclick="logout()">Logout</button>
     <h1>Safety Monitor Dashboard</h1>
     
     <div class="dashboard">
         <div style="margin-bottom: 20px;">
-            <input type="password" id="apiKeyInput" placeholder="Enter API Key">
             <button class="refresh-button" onclick="loadNotifications()">Refresh Notifications</button>
         </div>
         
@@ -66,45 +72,42 @@
     </div>
 
     <script>
-        // Dynamically set API URL based on environment
-        const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '192.168.8.132'
-            ? `http://${window.location.hostname}:3000`  // Use local URL when running locally
-            : 'https://app1-monitor.onrender.com';       // Use Render URL in production
+        // Check if user is logged in
+        function checkAuth() {
+            if (!localStorage.getItem('authToken')) {
+                window.location.href = 'login.html';
+            }
+        }
 
-        console.log('Using API URL:', API_URL); // For debugging
+        // Run auth check when page loads
+        checkAuth();
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('authToken');
+            window.location.href = 'login.html';
+        }
+
+        const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '192.168.8.132'
+            ? `http://${window.location.hostname}:3000`
+            : 'https://app1-41i1.onrender.com';
 
         function formatDate(timestamp) {
             return new Date(timestamp).toLocaleString();
         }
 
         function loadNotifications() {
-            const apiKey = document.getElementById('apiKeyInput').value;
-            if (!apiKey) {
-                alert('Please enter API key');
-                return;
-            }
-
-            fetch(`${API_URL}/api/notifications`, {
-                headers: {
-                    'X-API-Key': apiKey
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('API Key invalid or server error');
-                }
-                return response.json();
-            })
+            fetch(`${API_URL}/api/notifications`)
+            .then(response => response.json())
             .then(notifications => {
                 const container = document.getElementById('notifications');
-                container.innerHTML = ''; // Clear existing notifications
+                container.innerHTML = '';
                 
                 if (notifications.length === 0) {
                     container.innerHTML = '<p>No notifications received yet.</p>';
                     return;
                 }
 
-                // Sort notifications by timestamp, newest first
                 notifications.sort((a, b) => b.timestamp - a.timestamp);
 
                 notifications.forEach(notification => {
@@ -122,19 +125,12 @@
                 });
             })
             .catch(error => {
-                alert('Error: ' + error.message);
+                alert('Error loading notifications: ' + error.message);
             });
         }
 
         // Load notifications automatically when page loads
-        document.addEventListener('DOMContentLoaded', () => {
-            // Check for API key in localStorage
-            const savedApiKey = localStorage.getItem('apiKey');
-            if (savedApiKey) {
-                document.getElementById('apiKeyInput').value = savedApiKey;
-                loadNotifications();
-            }
-        });
+        document.addEventListener('DOMContentLoaded', loadNotifications);
 
         // Auto-refresh every 30 seconds
         setInterval(loadNotifications, 30000);

@@ -4,17 +4,11 @@ const app = express();
 const port = process.env.PORT || 3000;
 const host = '0.0.0.0';
 
-// Enable CORS for your Netlify frontend
+// Enable CORS
 app.use(cors({
-    origin: [
-        'https://app1-41i1.onrender.com',    // Your Render URL
-        'http://192.168.8.132:3000',         // Your local network testing
-        'http://localhost:3000',             // Local development
-        '*'                                  // Allow all origins temporarily for testing
-    ],
+    origin: '*',
     methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'X-API-Key'],
-    credentials: true
+    allowedHeaders: ['Content-Type']
 }));
 
 app.use(express.json());
@@ -22,28 +16,20 @@ app.use(express.json());
 // Serve static files from 'public' directory
 app.use(express.static('public'));
 
-// In-memory storage for notifications (for demonstration purposes)
-// In a production environment, you would use a database
+// In-memory storage for notifications
 let notifications = [];
 
-// Simple API key authentication - should be BEFORE the routes
-const API_KEY = 'safety-monitor-123'; // Make sure this matches the frontend
+// Redirect root to login page
+app.get('/', (req, res) => {
+    res.redirect('/login.html');
+});
 
-// Test endpoint (no authentication)
+// Test endpoint
 app.get('/test', (req, res) => {
     res.json({ message: 'Server is running!' });
 });
 
-// API authentication middleware
-app.use('/api', (req, res, next) => {
-    const apiKey = req.headers['x-api-key'];
-    if (!apiKey || apiKey !== API_KEY) {
-        return res.status(401).json({ error: 'Unauthorized' });
-    }
-    next();
-});
-
-// Protected API endpoints
+// Get notifications endpoint (no API key required anymore)
 app.get('/api/notifications', (req, res) => {
     res.json(notifications);
 });
@@ -51,7 +37,7 @@ app.get('/api/notifications', (req, res) => {
 // POST endpoint to receive notification data
 app.post('/api/notifications', (req, res) => {
     const notification = {
-        id: Date.now(), // Simple ID generation
+        id: Date.now(),
         timestamp: new Date().toISOString(),
         ...req.body
     };
