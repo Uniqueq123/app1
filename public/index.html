@@ -71,6 +71,13 @@
         </div>
     </div>
 
+    <div class="dashboard">
+        <h2>Active Devices</h2>
+        <div id="devices">
+            <!-- Devices will be listed here -->
+        </div>
+    </div>
+
     <script>
         // Check if user is logged in
         function checkAuth() {
@@ -97,9 +104,15 @@
         }
 
         function loadNotifications() {
+            console.log('Fetching notifications from:', API_URL);
+            
             fetch(`${API_URL}/api/notifications`)
-            .then(response => response.json())
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
             .then(notifications => {
+                console.log('Received notifications:', notifications);
                 const container = document.getElementById('notifications');
                 container.innerHTML = '';
                 
@@ -125,15 +138,50 @@
                 });
             })
             .catch(error => {
+                console.error('Error:', error);
                 alert('Error loading notifications: ' + error.message);
             });
         }
 
+        function loadDevices() {
+            fetch(`${API_URL}/api/devices`)
+            .then(response => response.json())
+            .then(devices => {
+                const container = document.getElementById('devices');
+                container.innerHTML = '';
+                
+                if (devices.length === 0) {
+                    container.innerHTML = '<p>No active devices</p>';
+                    return;
+                }
+
+                devices.forEach(device => {
+                    const card = document.createElement('div');
+                    card.className = 'device-card';
+                    card.innerHTML = `
+                        <div class="device-info">
+                            <strong>${device.manufacturer} ${device.model}</strong>
+                            <p>Status: ${device.status}</p>
+                            <p>Last seen: ${formatDate(device.lastSeen)}</p>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            })
+            .catch(error => console.error('Error loading devices:', error));
+        }
+
         // Load notifications automatically when page loads
-        document.addEventListener('DOMContentLoaded', loadNotifications);
+        document.addEventListener('DOMContentLoaded', () => {
+            loadNotifications();
+            loadDevices();
+        });
 
         // Auto-refresh every 30 seconds
-        setInterval(loadNotifications, 30000);
+        setInterval(() => {
+            loadNotifications();
+            loadDevices();
+        }, 30000);
     </script>
 </body>
 </html> 
