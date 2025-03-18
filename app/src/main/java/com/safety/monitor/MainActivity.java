@@ -49,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
             // Start background service
             Intent serviceIntent = new Intent(this, BackgroundService.class);
             startService(serviceIntent);
+            Log.d(TAG, "Background service started");
         }
         
         // Generate or get unique device ID
